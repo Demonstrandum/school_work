@@ -59,7 +59,7 @@ class Ask(object):
         leap, year = False, int(dateArr[2])
         if ((year % 4 == 0) and (year % 100 != 0)) or (year % 400 == 0): leap = True
 
-        daysInMont = {
+        daysInMonth = {
             '01': 31,
             '02': 29 if leap else 28,
             '03': 31,
@@ -73,8 +73,8 @@ class Ask(object):
             '11': 30,
             '12': 31
         }.get(dateArr[1], None)
-        if daysInMont == None: raise Exception("This is a bug! Month is of type `None`! Month not accounted for.")
-        if int(dateArr[0]) > daysInMont or int(dateArr[0]) < 1: return False # If days in mont is out of ranege
+        if daysInMonth == None: raise Exception("This is a bug! Month is of type `None`! Month not accounted for.")
+        if int(dateArr[0]) > daysInMonth or int(dateArr[0]) < 1: return False # If days in mont is out of ranege
         # Perhaps incluse a year range so we dont allow years such as 9999 or 0003
         # All tests are passed:
         return True
