@@ -40,7 +40,7 @@ class Ask(object):
                 date = input('Enter a {} in format DD/MM/YYYY: '.format(what))
                 if date.lower() == 'quit': sys.exit()
                 if not self.checkDate(date):
-                    print ("\nInvalid input, your date is incorrectly formated or a value is out of range.\nPlease double-check the date and\nTry again:")
+                    print ("\nInvalid input, your date is incorrectly formated\nor a value is out of range.\nPlease double-check the date and\n\nTry again:")
                     continue
 
                 valid = True
