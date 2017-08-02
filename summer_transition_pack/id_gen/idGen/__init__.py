@@ -1,14 +1,13 @@
 from . import generator
 from . import inputParse
 
-def id(dict):
+def id():
+    questions = inputParse.Ask()
+    dict = questions.dictionary()
     return generator.ID(dict).generate()
 
 def main():
-    print("")
-    questions = inputParse.Ask()
-    dict = questions.dictionary()
-    return id(dict)
+    print(id())
 
 if __name__ == '__main__':
     main()
