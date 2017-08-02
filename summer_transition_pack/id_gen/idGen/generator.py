@@ -6,8 +6,8 @@ class ID(object):
 
     def generate(self):
         date = self.date.split('/')
-        return "{}{}{}{}".format(
-            date[-1] + date[-2] + date[-3],
-            self.surname, self.forename[0],
-            str(len(self.forename))
+        return (
+            date[-1] + date[-2] + date[-3]
+            + self.surname + self.forename[0]
+            + str(len(self.forename))
         )
