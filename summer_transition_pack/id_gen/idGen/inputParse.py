@@ -3,6 +3,7 @@ import sys
 class Ask(object):
 
     def __init__(self):
+        print("\n== INFORMATION: ==")
         self.forename, self.surname = self.names()
         self.date = self.date()
 
