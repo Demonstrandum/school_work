@@ -4,7 +4,7 @@ import copy
 def fakeClear(lines=100):
     print("\n" * lines)
 
-class Quizee(object):
+class Quiz(object):
     def __init__(self, **kw):
         self.score = kw['score'] or 0
         self.correct = -1
@@ -28,15 +28,19 @@ class Quizee(object):
                 [False, 'Avg. American Household']
             ])
         ]
-    
-    def ask(self):
-        wrong = False
-        question = 1
 
-        while question <= len(self.questions):
+    def ask(self, question=None):
+        wrong = False
+        n = len(self.questions)
+        if question == None or question.lower() == 'all':
+            question = 1
+        else:
+            n = question
+
+        while question <= n:
             fakeClear()
             self._show(question, wrong)
-            
+
             chosen = input('\nChoose the correct letter: ').lower()
             if chosen == 'quit' or chosen == 'exit' or chosen == 'stop': sys.exit(0)
             if chosen == '':    # <- Blank input
@@ -51,9 +55,9 @@ class Quizee(object):
 
             self.score -= 1
             wrong = True
-        
+
         fakeClear()
-        print("Quiz completed!\n\nYour final score is: {:d}!\n{:s}".format(
+        print("Quiz completed!\n\nYour final score is: {:d}!\n{:s}\n".format(
             self.score,
             self.rate()
         ))
@@ -75,7 +79,7 @@ class Quizee(object):
         print("{:s}Question, {:d}.\t Score: {:d},\n\t\n'{:s}':".format(
             wrongMsg, n, self.score, question
         ))
-        
+
         option = 97 # 97 is ASCII-8BIT for 'a' chr(97) gives 'a'
         for answer in answers:
             if answer[0]:
@@ -83,12 +87,12 @@ class Quizee(object):
 
             print("\t{:c}) {:s}".format(option, answer[1]))
             option += 1
-        
+
         return self.correct
 
 
 def main():
-    Quizee(score=0).ask()
+    Quiz(score=0).ask('all')
 
 if __name__ == '__main__':
     main()
