@@ -1,8 +1,19 @@
-import sys
-import copy
+import sys, os
+from subprocess import call
 
-def fakeClear(lines=100):
-    print("\n" * lines)
+def clear(lines=100):
+    fakeClear = "\n" * lines
+    if 'idlelib.run' in sys.modules:
+        print(fakeClear)
+        return 'IDLE'
+    if os.name == 'nt':
+        call(['cls'])
+        return 'Windows CMD/PowerShell'
+    if os.name == 'posix':
+        call(['clear'])
+        return 'POSIX'
+    print(fakeClear)
+    return 'UNKNOWN'
 
 class Quiz(object):
     def __init__(self, **kw):
@@ -29,23 +40,25 @@ class Quiz(object):
             ])
         ]
 
-    def ask(self, question=None):
+    def ask(self, question=None, to=None):
         wrong = False
         n = len(self.questions)
-        if question == None or question.lower() == 'all':
+        if question == None or question == 'all':
             question = 1
+            if to is not None:
+                raise "Cannot specify `to` when `question` is not set!"
         else:
-            n = question
+            if to is not None or to is not 'last':
+                n = to
 
         while question <= n:
-            fakeClear()
+            clear()
             self._show(question, wrong)
 
             chosen = input('\nChoose the correct letter: ').lower()
             if chosen == 'quit' or chosen == 'exit' or chosen == 'stop': sys.exit(0)
-            if chosen == '':    # <- Blank input
-                chosen += ' '   # <- Just non-empty
-                self.score += 1 # <- Compensate for blank answer
+            if chosen == '': # <- Allow blank input
+                continue
 
             if ord(chosen[0]) - 97 == self.correct:
                 self.score += 1
@@ -56,14 +69,14 @@ class Quiz(object):
             self.score -= 1
             wrong = True
 
-        fakeClear()
+        clear()
         print("Quiz completed!\n\nYour final score is: {:d}!\n{:s}\n".format(
             self.score,
-            self.rate()
+            self._rate()
         ))
 
-    def rate(self):
-        if self.score < 0:
+    def _rate(self):
+        if self.score <= 0:
             return 'Jeesh...'
         if self.score == 1:
             return 'You can do better.'
@@ -92,7 +105,10 @@ class Quiz(object):
 
 
 def main():
-    Quiz(score=0).ask('all')
+    Quiz(score=0).ask('all') # replace 'all' with nothing, for same effect,
+                         # a number to ask only that question, e.g. ask(2),
+                         # or, two numbers for a range of questions between
+                         # those numbers, e.g. ask(1, 2)
 
 if __name__ == '__main__':
     main()
