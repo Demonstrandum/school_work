@@ -43,12 +43,17 @@ class Quiz(object):
     def ask(self, question=None, to=None):
         wrong = False
         n = len(self.questions)
+        if to == 'last': to = len(self.questions)
+        try:
+            if to < 0: to += len(self.questions) + 1
+        except: pass
+
         if question == None or question == 'all':
             question = 1
             if to is not None:
                 raise "Cannot specify `to` when `question` is not set!"
         else:
-            if to is not None or to is not 'last':
+            if to is not None:
                 n = to
 
         while question <= n:
@@ -70,8 +75,9 @@ class Quiz(object):
             wrong = True
 
         clear()
-        print("Quiz completed!\n\nYour final score is: {:d}!\n{:s}\n".format(
+        print("Quiz completed!\n\nYour final score is: {:d}/{:d},\n{:s}\n".format(
             self.score,
+            len(self.questions),
             self._rate()
         ))
 
@@ -105,10 +111,12 @@ class Quiz(object):
 
 
 def main():
-    Quiz(score=0).ask('all') # replace 'all' with nothing, for same effect,
-                         # a number to ask only that question, e.g. ask(2),
-                         # or, two numbers for a range of questions between
-                         # those numbers, e.g. ask(1, 2)
+    Quiz(score=0).ask('all')
+    # replace 'all' with nothing, or, ask(1, -1) which is first to last,
+    # or, ask(1, 'last'), all for same effect ask(),
+    # a number to ask only that question, e.g. ask(2),
+    # or, two numbers for a range of questions between ...
+    # ... those numbers, e.g. ask(1, 2)
 
 if __name__ == '__main__':
     main()
