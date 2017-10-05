@@ -1,117 +1,228 @@
 """Client for Area Trainers"""
 
-import getpass
 import os
 import tkinter as tk
+import json
 
 import areaTrainer as at
 
+# Global username and password
+username = password = None
 
-def login(database, file):
-    """Login and check to AT"""
-    exists = False
-    while not exists:
-        name = input('Enter your username: ')
-        passwd = getpass.getpass('Enter password: ')
-        log = at.Login(name, passwd, database)
-        exists = log.login()
-        if not exists:
-            print('Username or password is invalid!')
-
-    log.save(file)
-    return [name, passwd]
-
-
-def register(database, file):
-    """Register to AT"""
-    taken = True
-    while taken:
-        username = input('Enter a username: ')
-        if at.Login(username, '', database).exists():
-            print('This username is taken!')
-            continue
-        taken = False
-
-    match = False
-    while not match:
-        valid = False
-        while not valid:
-            password = getpass.getpass('Enter a password: ')
-            if len(password) < 6:
-                print('Password must be more than 6 characters long!')
-                continue
-            if password.upper() == password or \
-               password.lower() == password:
-                print('''
-The password must
-contain at least one upper or
-lower case character!''')
-                continue
-            if not any(char.isdigit() for char in password):
-                print('Must contain at least one number!')
-                continue
-            valid = True
-
-        reenter = getpass.getpass('Re-enter password: ')
-        if not reenter == password:
-            print('Your passwords do not match, try again!')
-            continue
-
-        match = True
-
-    reg_obj = at.Register(
-        username,
-        password,
-        database
-    )
-    reg_obj.add()
-    reg_obj.save(file)
-    return [username, password]
-
-
-file = "{}/logins.json".format(os.getcwd())
+# Location and name of file
+file = "{}/logins.json".format(os.path.dirname(__file__))
 # Make file if it does not exist
 if not os.path.exists(file):
     at.Users().save(file)
 
+# Open the database
+database = at.Users().load(file)
 
+
+# Start Tkinter GUI
 root = tk.Tk()
+width, height = 400, 300
 root.title("Register or Login")
 root.configure(background='white')
 
-name_label = tk.Label(root, text="Username", background='white')
-name_label.pack(side=tk.LEFT)
-name_entry = tk.Entry(root, bd=5, background='white')
-name_entry.pack(side=tk.RIGHT)
+login_frame = tk.Frame(root, background='white')
+register_frame = tk.Frame(root, background='white')
 
-pass_label = tk.Label(root, text="Username", background='white')
-pass_label.pack(side=tk.LEFT)
-pass_entry = tk.Entry(root, bd=5, background='white')
-pass_entry.pack(side=tk.RIGHT)
+index_frame = tk.Frame(root, background='white')
+index_frame.pack(padx=20, pady=20)
 
+
+def switch_login():
+    """Swith to login screen"""
+    global login_frame, index_frame
+    login_frame.pack(side=tk.TOP, pady=20, padx=20)
+    index_frame.pack_forget()
+
+index_login = tk.Button(
+    index_frame,
+    text='Login',
+    background='white',
+    command=switch_login
+)
+index_login.pack(side=tk.LEFT)
+tk.Label(index_frame, text=' or ', background='white').pack(side=tk.LEFT)
+
+
+def switch_register():
+    """Switch to register screen"""
+    register_frame.pack(side=tk.TOP, pady=20, padx=20)
+    index_frame.pack_forget()
+
+index_register = tk.Button(
+    index_frame, 
+    text='Register',
+    background='white',
+    command=switch_register
+)
+index_register.pack(side=tk.RIGHT)
+
+# Login screen
+login_name_frame = tk.Frame(login_frame, background='white')
+login_name_frame.pack(side=tk.TOP, pady=5)
+
+login_name_label = tk.Label(login_name_frame, text="Username", background='white')
+login_name_label.pack(side=tk.LEFT, padx=(0, 10))
+login_name_entry = tk.Entry(login_name_frame, bd=5, background='white', text='default')
+login_name_entry.pack(side=tk.RIGHT)
+
+login_pass_frame = tk.Frame(login_frame, background='white')
+login_pass_frame.pack(side=tk.TOP, pady=(5, 15))
+
+login_pass_label = tk.Label(login_pass_frame, text="Password ", background='white')
+login_pass_label.pack(side=tk.LEFT, padx=(0, 11))
+login_pass_entry = tk.Entry(login_pass_frame, bd=5, background='white', show='•')
+login_pass_entry.pack(side=tk.RIGHT)
+
+
+login_message = tk.StringVar()
+login_message.set('')
+login_label = tk.Label(login_frame, textvariable=login_message, background='white', pady=5)
+
+
+def access():
+    pass
+    # TODO: !!! index_frame.pack_forget()
+    #           Pack the new AREA TRAINER WINDOW
+    #           ADD IMAGES ETC...
+    #           LOG SHAPES LOOKED/CLICKED AT
+    #           (MAKE NEW FRAME FOR THE SHAPE)
+    #           ^ (GLOBAL VAR FOR /ACTIVE/ SHAPE)
+    #           ^ IF SHAPE ALREADY EXISTS IN LIST ADD ONE TO THE COUNTER FOR EACH SHAPE
+    #           TAKE END SESSION TIME UPON WINDOW CLOSE
+
+
+def login():
+    """Login to a user"""
+    global username, password
+
+    login_object = at.Login(login_name_entry.get(), login_pass_entry.get(), database)
+    if not login_object.exists():
+        login_message.set('No such username!')
+        login_label.pack()
+        return False
+
+    if not login_object.login():
+        login_message.set('Incorrect password!')
+        login_label.pack()
+        return False
+
+    login_message.set('Success')
+    login_label.pack()
+
+    username, password = login_name_entry.get(), login_pass_entry.get()
+    access()
+    return True
+
+
+def login_back():
+    """Switch to register screen"""
+    global login_frame, index_frame
+    index_frame.pack(side=tk.TOP, padx=20, pady=20)
+    login_frame.pack_forget()
+
+login_back_button = tk.Button(
+    login_frame, 
+    text='Back',
+    background='white',
+    command=login_back
+)
+login_back_button.pack(side=tk.LEFT)
+
+
+login_button = tk.Button(
+    login_frame,
+    text='Login',
+    background='white',
+    command=login
+)
+login_button.pack(side=tk.RIGHT)
+
+# Register frame
+
+reg_name_frame = tk.Frame(register_frame, background='white')
+reg_name_frame.pack(side=tk.TOP, pady=5)
+
+reg_name_label = tk.Label(reg_name_frame, text="Username", background='white')
+reg_name_label.pack(side=tk.LEFT, padx=(0, 15))
+reg_name_entry = tk.Entry(reg_name_frame, bd=5, background='white')
+reg_name_entry.pack(side=tk.RIGHT)
+
+reg_pass_frame = tk.Frame(register_frame, background='white')
+reg_pass_frame.pack(side=tk.TOP, pady=5)
+
+reg_pass_label = tk.Label(reg_pass_frame, text="Password", background='white')
+reg_pass_label.pack(side=tk.LEFT, padx=(0, 20))
+reg_pass_entry = tk.Entry(reg_pass_frame, bd=5, background='white', show='•')
+reg_pass_entry.pack(side=tk.RIGHT)
+
+
+reg_repass_frame = tk.Frame(register_frame, background='white')
+reg_repass_frame.pack(side=tk.TOP, pady=(5, 15))
+
+reg_repass_label = tk.Label(reg_repass_frame, text="Re-enter ", background='white')
+reg_repass_label.pack(side=tk.LEFT, padx=(0, 21))
+reg_repass_entry = tk.Entry(reg_repass_frame, bd=5, background='white', show='•')
+reg_repass_entry.pack(side=tk.RIGHT)
+
+register_message = tk.StringVar()
+register_message.set('')
+register_label = tk.Label(register_frame, textvariable=register_message, background='white', pady=7)
+
+
+def register():
+    """Register user and log in"""
+    global username, password
+    registerer = at.Register(reg_name_entry.get(), reg_pass_entry.get(), database)
+
+    validity = registerer.validate()
+    print(reg_name_entry.get(), validity)
+    if not validity['valid']:
+        register_message.set(validity['error'])
+        register_label.pack()
+        return validity['valid']
+
+    register_message.set('Success')
+    register_label.pack()
+    registerer.add()
+    registerer.save(file)
+
+    username, password = reg_name_entry.get(), reg_pass_entry.get()
+    access()
+    return True
+
+regsiter_button = tk.Button(
+    register_frame,
+    text='Register',
+    background='white',
+    command=register
+)
+regsiter_button.pack(side=tk.RIGHT)
+
+
+def register_back():
+    """Switch to register screen"""
+    index_frame.pack(side=tk.TOP, padx=20, pady=20)
+    register_frame.pack_forget()
+
+reg_back_button = tk.Button(
+    register_frame, 
+    text='Back',
+    background='white',
+    command=register_back
+)
+reg_back_button.pack(side=tk.LEFT)
+
+root.resizable(width=False, height=False)
+#root.geometry('{}x{}'.format(width, height))
 root.mainloop()
 
-# logins = at.Users().load()
-# username = password = None
 
-# logged_in = False
-# while not logged_in:
-#     print('Would you like to login, or register [L/r]')
-#     option = input('> ')
-
-#     if not option.lower() == 'r':
-#         logger = login(logins, file)
-#         username, password = logger
-#         if logger:
-#             break
-#     else:
-#         reg = register(logins, file)
-#         username, password = reg
-#         if reg:
-#             break
-# print('Succsess.')
-# print('Logged in as {}'.format(username))
-
+at.Users(database).save(file)
 # Verbose extra database output
 print('Users saved, user database: ')
-print(at.Users().load())
+print(at.Users().load(file))

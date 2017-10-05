@@ -1,9 +1,10 @@
 """Adding a checking users"""
 
+import re  # Regular Expression support
 import json
 from time import gmtime, strftime
 
-
+DATABASE = [{}]
 EXAMPLE_DATABASE = [
     {
         'username': 'sam',
@@ -31,46 +32,55 @@ class Users(object):
     def __init__(self, database=None):
         self.database = database
         if database is None:
-            self.database = EXAMPLE_DATABASE
+            self.database = DATABASE
 
-    def save(self, file='logins.json'):
+    def save(self, file_name='logins.json'):
         """Save to database file"""
         json_dump = json.dumps(self.database)
-        with open(file, 'w') as file:
+        with open(file_name, 'w') as file:
             file.write(json_dump)
 
         return self.database
 
-    def load(self, file='logins.json'):
+    def load(self, file_name='logins.json'):
         """Load database file to self.database"""
         json_string = ''
-        with open(file, 'r') as file:
+        with open(file_name, 'r') as file:
             json_string = file.read()
             self.database = json.loads(json_string)
+
+        if len(self.database[0]) < 1:
+            self.database.pop(0)
 
         return self.database
 
 
 class Login(Users):
     """Add a user to dict database"""
-    def __init__(self, user, password, database):
+    def __init__(self, username, password, database):
         super().__init__(database)
-        self.username = user
+        self.username = username
         self.password = password
         self.database = database
         self.logged_in = False
 
     def exists(self):
         """Checks username"""
-        return self.username in [users['username'] for users in self.database]
+        try:
+            return self.username in [users['username'] for users in self.database]
+        except KeyError:
+            return False
 
     def login(self):
         """Checks username and password"""
-        for user in self.database:
-            if (user['username'] == self.username and
-                    user['password'] == self.password):
-                self.logged_in = True
-                break
+        try:
+            for user in self.database:
+                if (user['username'] == self.username and
+                        user['password'] == self.password):
+                    self.logged_in = True
+                    break
+        except KeyError:
+            return False
 
         return self.logged_in
 
@@ -101,4 +111,52 @@ class Register(Users):
 
     def taken(self):
         """Check if the username is taken"""
-        return self.username in [users['username'] for users in self.database]
+        try:
+            return self.username in [users['username'] for users in self.database]
+        except KeyError:
+            return False
+
+    def validate(self, name_length=40, password_length=8):
+        """Check if username/password are valid"""
+        message = {
+            'valid': False,
+            'error': None
+        }
+
+        if self.taken():
+            message['error'] = "Username taken!"
+            return message
+
+        if re.match('.*[^A-Za-z0-9\-_\s].*', self.username):
+            message['error'] = "Username must be\nalphanumeric\n('-' and '_' allowed)"
+            return message
+
+        if len(self.username) > name_length:
+            message['error'] = "Username too long!\n({:d} max length)".format(name_length)
+            return message
+
+        if len(self.password) < password_length:
+            message['error'] = "Passwrod must be\nat least 8 characters"
+            return message
+
+        if (self.password.upper() == self.password or
+                self.password.lower() == self.password):
+            message['error'] = "Password must have\nupper and lower\ncase letters!"
+            return message
+
+        if not any(char.isdigit() for char in self.password):
+            message['error'] = "Password must\ncontain number(s)!"
+            return message
+
+        if not re.match('.*[^A-Za-z0-9].*', self.password):
+            message['error'] = "Must contain\nspecial character(s)!"
+            return message
+
+        if re.match('.*\s.*', self.password):
+            message['error'] = "Must can't\nhave space(s)!"
+            return message
+
+        # Otherwise, were happy
+        message['valid'] = True
+        message['error'] = 'Success'
+        return message
