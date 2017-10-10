@@ -3,6 +3,8 @@
 import os
 import tkinter as tk
 import json
+from PIL import Image
+from PIL import ImageTk
 
 import areaTrainer as at
 
@@ -18,6 +20,22 @@ if not os.path.exists(file):
 # Open the database
 database = at.Users().load(file)
 
+
+# Images directory
+image_dir = "{}/assets/shapes/".format(os.path.dirname(__file__))
+images = os.listdir(image_dir)
+
+shape_data = {
+    'circle': {
+        'formula': r"\pi r^2",
+        'formula-image': '{}/../formula/circle.png'.format(image_dir),
+        
+        'info': ' '.join("""
+            Where \u03c0 is `pi` which is a constant of half the diameter
+            of circle with radius 1, and `r` is the radius of the circle.
+        """.split()).replace('\t', '').strip()
+    }
+}
 
 # Start Tkinter GUI
 root = tk.Tk()
@@ -83,13 +101,124 @@ login_message = tk.StringVar()
 login_message.set('')
 login_label = tk.Label(login_frame, textvariable=login_message, background='white', pady=5)
 
+interface  = tk.Frame(root, bg='white')
+show_frame = tk.Frame(root, bg='white')
+
+
+def back_inteface():
+    show_frame.destroy()
+    interface.pack()
+
+
+def show_shape(name, file):
+    """Show the selected shape"""
+    global show_frame
+    show_frame = tk.Frame(root, bg='white')
+    data = shape_data[name]
+
+    show_frame.pack()
+    interface.pack_forget()
+    shape_frame = tk.Frame(show_frame, bg='white')
+    shape_frame.pack(side=tk.TOP)
+
+    image = Image.open("{}/{}".format(image_dir, file))
+    image = image.resize((350, 350), Image.ANTIALIAS)
+    photo = ImageTk.PhotoImage(image)
+    photo_label = tk.Label(
+        shape_frame,
+        image=photo,
+        compound=tk.TOP,
+        borderwidth=2, relief="groove",
+        bg='white'
+    )
+    photo_label.image = photo
+    photo_label.pack(side=tk.TOP, padx=40, pady=(40, 20))
+
+    desc_frame = tk.Frame(show_frame, bg='white')
+    desc_frame.pack(side=tk.BOTTOM)
+    
+    formula_image = Image.open(data['formula-image'])
+    # image = image.resize((350, 350), Image.ANTIALIAS)
+    formula_photo = ImageTk.PhotoImage(formula_image)
+    # formula_photo = tk.PhotoImage(file=data['formula-image'])
+    formula_label = tk.Label(
+        desc_frame,
+        image=formula_photo,
+        bg='white'
+    )
+    formula_label.image = formula_photo
+    formula_label.pack(side=tk.TOP)
+
+    info_label = tk.Label(desc_frame, text=data['info'], bg='white', wraplength=400)
+    info_label.pack(side=tk.TOP, pady=(30, 20))
+
+    back_frame = tk.Frame(desc_frame, bg='white')
+    back_frame.pack(side=tk.BOTTOM, pady=20)
+    back_button = tk.Button(
+        back_frame,
+        text='Back',
+        bg='white',
+        command=back_inteface
+    )
+    back_button.pack(side=tk.BOTTOM)
+
 
 def access():
-    pass
-    # TODO: !!! index_frame.pack_forget()
-    #           Pack the new AREA TRAINER WINDOW
-    #           ADD IMAGES ETC...
-    #           LOG SHAPES LOOKED/CLICKED AT
+    """Run when logged in to present AT interface"""
+    index_frame.pack_forget()  # Unpack the index interface
+    login_frame.pack_forget()
+    show_frame.pack_forget()
+    register_frame.pack_forget()
+
+    interface.pack(side=tk.TOP, pady=30, padx=30)
+
+    canvas = tk.Canvas(
+        interface,
+        bg='white',
+        width=300,
+        height=300,
+        border=2,
+        relief="groove",
+        scrollregion=(0, 0, 500, 1000)
+    )
+
+    # scrollbar = tk.Scrollbar(interface, bg='white', orient=tk.VERTICAL)
+    # scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+    # scrollbar.config(command=canvas.yview)
+    # canvas.config(yscrollcommand=scrollbar.set)
+    canvas.pack(side=tk.TOP, expand=True, fill=tk.BOTH, pady=20, padx=20)
+
+    col = 0
+    row = 0
+    grid_width = 2  # How many columns - 1 (0 index)
+    for image_file in images:
+        image = Image.open("{}/{}".format(image_dir, image_file))
+        image = image.resize((150, 150), Image.ANTIALIAS)
+        tk_photo = ImageTk.PhotoImage(image)
+
+        shape_name = ".".join(image_file.split('.')[:-1]).lower()
+        shape_title = ".".join(image_file.split('.')[:-1]).replace('-', ' ').title()
+
+        shape = tk.Label(
+            canvas,
+            text=shape_title,
+            image=tk_photo,
+            compound=tk.TOP,
+            bg='white'
+        )
+        shape.image = tk_photo
+        shape.grid(row=row, column=col, sticky='ns', padx=20, pady=20)
+        shape.bind(
+            "<Button-1>", 
+            (lambda event, name=shape_name, file=image_file: show_shape(name, file))
+        )
+
+        col += 1
+        if col > grid_width:
+            row += 1
+            col = 0
+    #   TODO:   Add more shape info and equations
+    #   TODO:   LOG SHAPES LOOKED/CLICKED AT
     #           (MAKE NEW FRAME FOR THE SHAPE)
     #           ^ (GLOBAL VAR FOR /ACTIVE/ SHAPE)
     #           ^ IF SHAPE ALREADY EXISTS IN LIST ADD ONE TO THE COUNTER FOR EACH SHAPE
