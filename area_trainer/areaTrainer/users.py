@@ -127,7 +127,7 @@ class Register(Users):
             message['error'] = "Username taken!"
             return message
 
-        if re.match('.*[^A-Za-z0-9\-_\s].*', self.username):
+        if re.match(r'.*[^A-Za-z0-9\-_\s].*', self.username):
             message['error'] = "Username must be\nalphanumeric\n('-' and '_' allowed)"
             return message
 
@@ -148,11 +148,11 @@ class Register(Users):
             message['error'] = "Password must\ncontain number(s)!"
             return message
 
-        if not re.match('.*[^A-Za-z0-9].*', self.password):
+        if not re.match(r'.*[^A-Za-z0-9].*', self.password):
             message['error'] = "Must contain\nspecial character(s)!"
             return message
 
-        if re.match('.*\s.*', self.password):
+        if re.match(r'.*\s.*', self.password):
             message['error'] = "Must can't\nhave space(s)!"
             return message
 

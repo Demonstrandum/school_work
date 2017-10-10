@@ -28,14 +28,15 @@ images = os.listdir(image_dir)
 
 shape_data = {
     'circle': {
-        'formula': r"\pi r^2",
+        'formula': r'\pi r^2',
         'formula-image': '{}/../formula/circle.png'.format(image_dir),
-        
+
         'info': ' '.join("""
             Where \u03c0 is `pi` which is a constant of half the diameter
             of circle with radius 1, and `r` is the radius of the circle.
         """.split()).replace('\t', '').strip()
     }
+    # TODO: Add data for all shapes
 }
 
 # Start Tkinter GUI
