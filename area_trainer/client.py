@@ -3,14 +3,15 @@
 import os
 import tkinter as tk
 import json
+from time import gmtime, strftime
+
 from PIL import Image
 from PIL import ImageTk
 
 import areaTrainer as at
 
 # Global username and password
-username = password = None
-
+username = password = login_time = None
 # Location and name of file
 file = "{}/logins.json".format(os.path.dirname(__file__))
 # Make file if it does not exist
@@ -112,6 +113,22 @@ def back_inteface():
 
 def show_shape(name, file):
     """Show the selected shape"""
+    # Log selected shape
+    user_index = None
+    for user_dict in database:
+        if user_dict['username'] == username:
+            user_index = database.index(user_dict)
+            break
+
+    if name not in sum(database[user_index]['shapes'], []):
+        database[user_index]['shapes'].append([name, 1])
+
+    for shape_count in database[user_index]['shapes']:
+        if shape_count == []: break
+        if shape_count[0] == name:
+            shape_count[1] += 1  # Add one to times viewed if exists
+            break
+
     global show_frame
     show_frame = tk.Frame(root, bg='white')
     data = shape_data[name]
@@ -217,17 +234,11 @@ def access():
         if col > grid_width:
             row += 1
             col = 0
-    #   TODO:   Add more shape info and equations
-    #   TODO:   LOG SHAPES LOOKED/CLICKED AT
-    #           (MAKE NEW FRAME FOR THE SHAPE)
-    #           ^ (GLOBAL VAR FOR /ACTIVE/ SHAPE)
-    #           ^ IF SHAPE ALREADY EXISTS IN LIST ADD ONE TO THE COUNTER FOR EACH SHAPE
-    #           TAKE END SESSION TIME UPON WINDOW CLOSE
 
 
 def login():
     """Login to a user"""
-    global username, password
+    global username, password, login_time
 
     login_object = at.Login(login_name_entry.get(), login_pass_entry.get(), database)
     if not login_object.exists():
@@ -241,6 +252,8 @@ def login():
         return False
 
     login_message.set('Success')
+    # Login time
+    login_time = strftime("%Y-%m-%d %H:%M:%S", gmtime())
     login_label.pack()
 
     username, password = login_name_entry.get(), login_pass_entry.get()
@@ -305,7 +318,7 @@ register_label = tk.Label(register_frame, textvariable=register_message, backgro
 
 def register():
     """Register user and log in"""
-    global username, password
+    global username, password, login_time
     registerer = at.Register(reg_name_entry.get(), reg_pass_entry.get(), database)
 
     validity = registerer.validate()
@@ -321,6 +334,8 @@ def register():
     registerer.save(file)
 
     username, password = reg_name_entry.get(), reg_pass_entry.get()
+    # Login time
+    login_time = strftime("%Y-%m-%d %H:%M:%S", gmtime())
     access()
     return True
 
@@ -350,7 +365,19 @@ root.resizable(width=False, height=False)
 #root.geometry('{}x{}'.format(width, height))
 root.mainloop()
 
-
+# Take closing time and add start time
+user_index = None
+for user_dict in database:
+    if user_dict['username'] == username:
+        user_index = database.index(user_dict)
+        break
+database[user_index]['sessions'].append(
+    [
+        login_time,
+        strftime("%Y-%m-%d %H:%M:%S", gmtime())
+    ]
+)
+# Save info generated
 at.Users(database).save(file)
 # Verbose extra database output
 print('Users saved, user database: ')
