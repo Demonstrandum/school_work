@@ -1,6 +1,7 @@
 """Client for Area Trainers"""
 
-import os
+import os, sys
+import random, time, threading
 import tkinter as tk
 import json
 from time import gmtime, strftime
@@ -28,7 +29,9 @@ images = os.listdir(image_dir)
 
 shape_data = {
     'circle': {
-        'formula': r'\pi r^2',
+        'latex': r'\pi r^2',
+        'formula': "3.14159265 * {var1}**2",
+        'variable': "r = {var1}",
         'formula-image': '{}/../formula/circle.png'.format(image_dir),
 
         'info': ' '.join("""
@@ -38,6 +41,40 @@ shape_data = {
     }
     # TODO: Add data for all shapes
 }
+
+
+class Score(tk.IntVar):
+    def __init__(self, start=None, reward=2, punishment=1):
+        super().__init__(master=None)
+        self.start = 0
+        self.reward = reward
+        self.punishment = punishment
+        if start is not None:
+            self.start = start
+
+        self.score = self.start
+
+    def correct(self):
+        self.score += self.reward
+        super().set(self.score)
+        return self.score
+
+    def wrong(self):
+        self.score -= self.punishment
+        super().set(self.score)
+        return self.score
+
+    def get(self):
+        return super().get()
+
+    def set(self, val):
+        super().set(val)
+        self.score = val
+        return self.get()
+
+    # Alias functions:
+    reward = correct
+    punish = wrong
 
 # Start Tkinter GUI
 root = tk.Tk()
@@ -105,6 +142,31 @@ login_label = tk.Label(login_frame, textvariable=login_message, background='whit
 
 interface  = tk.Frame(root, bg='white')
 show_frame = tk.Frame(root, bg='white')
+quiz_frame = tk.Frame(root, bg='white')
+
+correct = False
+attempts = 3
+attempts_count = attempts
+attempts_var = tk.StringVar()
+attempts_var.set("[{}] attempts left.\n".format(attempts_count))
+score = Score(start=0, reward=2, punishment=1)
+
+def check_answer(right_index=None, selected=None):
+    global correct, attempts_count, attempts_var
+
+    answers = []
+    for checks in selected:
+        answers.append(checks.get())
+
+    correct = answers[right_index] == 1
+    if correct:
+        attempts_count = attempts
+        attempts_var.set("[{}] attempts left.\n".format(attempts_count))
+    else:
+        attempts_var.set("Wrong! Try again,\n[{}] attempts left.\n".format(attempts_count))
+        attempts_count -= 1
+
+    return correct
 
 
 def back_inteface():
@@ -130,66 +192,160 @@ def show_shape(name, file):
             shape_count[1] += 1  # Add one to times viewed if exists
             break
 
-    global show_frame
+    global show_frame, quiz_frame
+    quiz_frame = tk.Frame(root, bg='white', padx=20, pady=10)
+    quiz_frame.pack()
     show_frame = tk.Frame(root, bg='white')
+    interface.pack_forget()
+
     data = shape_data[name]
 
-    show_frame.pack()
-    interface.pack_forget()
-    shape_frame = tk.Frame(show_frame, bg='white')
-    shape_frame.pack(side=tk.TOP)
+    max_var = 40
+    var1, var2, var3, var4 = [random.randint(1, max_var) for _ in range(4)]
+    right_answer = eval(data['formula'].format(var1=var1, var2=var2, var3=var3, var4=var4))
+    answers = [eval(data['formula'].format(
+        var1=random.randint(1, max_var),
+        var2=random.randint(1, max_var),
+        var3=random.randint(1, max_var),
+        var4=random.randint(1, max_var))) for _ in range(3)]
 
-    image = Image.open("{}/{}".format(image_dir, file))
-    image = image.resize((350, 350), Image.ANTIALIAS)
-    photo = ImageTk.PhotoImage(image)
-    photo_label = tk.Label(
-        shape_frame,
-        image=photo,
-        compound=tk.TOP,
-        borderwidth=2, relief="groove",
-        bg='white'
-    )
-    photo_label.image = photo
-    photo_label.pack(side=tk.TOP, padx=40, pady=(40, 20))
+    answers.append(right_answer)
+    random.shuffle(answers)
+    right_index = answers.index(right_answer)
 
-    desc_frame = tk.Frame(show_frame, bg='white')
-    desc_frame.pack(side=tk.BOTTOM)
-    
-    formula_image = Image.open(data['formula-image'])
-    # image = image.resize((350, 350), Image.ANTIALIAS)
-    formula_photo = ImageTk.PhotoImage(formula_image)
-    # formula_photo = tk.PhotoImage(file=data['formula-image'])
-    formula_label = tk.Label(
-        desc_frame,
-        image=formula_photo,
-        bg='white'
-    )
-    formula_label.image = formula_photo
-    formula_label.pack(side=tk.TOP)
+    a_int = tk.IntVar()
+    b_int = tk.IntVar()
+    c_int = tk.IntVar()
+    d_int = tk.IntVar()
 
-    info_label = tk.Label(desc_frame, text=data['info'], bg='white', wraplength=400)
-    info_label.pack(side=tk.TOP, pady=(30, 20))
+    attempts_label = tk.Label(quiz_frame, textvariable=attempts_var, bg='white')
+    attempts_label.grid(row=0, column=0)
+    values_label = tk.Label(quiz_frame, pady=10, text=data['variable'].format(var1=var1, var2=var2, var3=var3, var4=var4), bg='white')
+    values_label.grid(row=1, column=0)
+    a_check = tk.Checkbutton(quiz_frame, pady=5, padx=5, text="{:.2f}".format(answers[0]).rjust(10), variable=a_int, bg='white')
+    a_check.grid(row=2, column=0, sticky=tk.W)
+    b_check = tk.Checkbutton(quiz_frame, pady=5, padx=5, text="{:.2f}".format(answers[1]).rjust(10), variable=b_int, bg='white')
+    b_check.grid(row=3, column=0, sticky=tk.W)
+    c_check = tk.Checkbutton(quiz_frame, pady=5, padx=5, text="{:.2f}".format(answers[2]).rjust(10), variable=c_int, bg='white')
+    c_check.grid(row=4, column=0, sticky=tk.W)
+    d_check = tk.Checkbutton(quiz_frame, pady=5, padx=5, text="{:.2f}".format(answers[3]).rjust(10), variable=d_int, bg='white')
+    d_check.grid(row=5, column=0, sticky=tk.W)
 
-    back_frame = tk.Frame(desc_frame, bg='white')
-    back_frame.pack(side=tk.BOTTOM, pady=20)
-    back_button = tk.Button(
-        back_frame,
-        text='Back',
+    tk.Label(quiz_frame, text='', pady=2.5, padx=2.5, bg='white').grid(row=6)
+
+    check_button = tk.Button(
+        quiz_frame,
+        text='Submit',
         bg='white',
-        command=back_inteface
+        command=(lambda r=right_index, s=(a_int, b_int, c_int, d_int): check_answer(right_index=r, selected=s))
     )
-    back_button.pack(side=tk.BOTTOM)
+    check_button.grid(row=7, column=0)
+
+    def wrong_threading():
+        quiz_frame.destroy()
+        show_frame.pack()
+        shape_frame = tk.Frame(show_frame, bg='white')
+        shape_frame.pack(side=tk.TOP)
+
+        too_wrong = tk.Label(shape_frame, text="Sorry, too many wrong answers,\nHere's an explanation:", bg='white', pady=10)
+        too_wrong.pack(side=tk.TOP)
+
+        image = Image.open("{}/{}".format(image_dir, file))
+        image = image.resize((350, 350), Image.ANTIALIAS)
+        photo = ImageTk.PhotoImage(image)
+        photo_label = tk.Label(
+            shape_frame,
+            image=photo,
+            compound=tk.TOP,
+            borderwidth=2, relief="groove",
+            bg='white'
+        )
+        photo_label.image = photo
+        photo_label.pack(side=tk.TOP, padx=40, pady=(40, 20))
+
+        desc_frame = tk.Frame(show_frame, bg='white')
+        desc_frame.pack(side=tk.BOTTOM)
+
+        formula_image = Image.open(data['formula-image'])
+        # image = image.resize((350, 350), Image.ANTIALIAS)
+        formula_photo = ImageTk.PhotoImage(formula_image)
+        # formula_photo = tk.PhotoImage(file=data['formula-image'])
+        formula_label = tk.Label(
+            desc_frame,
+            image=formula_photo,
+            bg='white'
+        )
+        formula_label.image = formula_photo
+        formula_label.pack(side=tk.TOP)
+
+        info_label = tk.Label(desc_frame, text=data['info'], bg='white', wraplength=400)
+        info_label.pack(side=tk.TOP, pady=(30, 20))
+
+        back_frame = tk.Frame(desc_frame, bg='white')
+        back_frame.pack(side=tk.BOTTOM, pady=20)
+        back_button = tk.Button(
+            back_frame,
+            text='Back',
+            bg='white',
+            command=back_inteface
+        )
+        back_button.pack(side=tk.BOTTOM)
+
+    def correct_screen():
+        quiz_frame.destroy()
+        congrats = tk.Label(
+            root,
+            text='Correct Answer\nYour score has increased!',
+            bg='white',
+            padx=30,
+            pady=30
+        )
+        congrats.pack()
+        time.sleep(3)
+        congrats.pack_forget()
+        back_inteface()
+
+    def answer_event():
+        global attempts_count, correct
+        while True:
+            time.sleep(1)
+            if correct:
+                correct = False  # Set back to assume wrong
+                attempts_count = attempts
+                score.correct()
+                correct_screen()
+                break
+
+            if attempts_count < 1:
+                attempts_count = attempts
+                score.punish()
+                wrong_threading()
+                break
+
+    answer_thread = threading.Thread(target=answer_event)
+    answer_thread.start()
 
 
 def access():
     """Run when logged in to present AT interface"""
+    correct = False  # Reset correctness when on home screen
+    score_frame = tk.Frame(root, bg='white')
+    score_frame.pack(side=tk.TOP, pady=(20, 20))
+
+    score_indicate = tk.Label(score_frame, text='Score:', bg='white')
+    score_label = tk.Label(score_frame, textvariable=score, bg='white')
+    score_label.pack(side=tk.RIGHT)
+    score_indicate.pack(side=tk.LEFT)
+
+
     index_frame.pack_forget()  # Unpack the index interface
     login_frame.pack_forget()
     show_frame.pack_forget()
     register_frame.pack_forget()
 
-    interface.pack(side=tk.TOP, pady=30, padx=30)
-
+    interface.pack(side=tk.TOP, pady=(0, 30), padx=30)
+    interface_message = tk.Label(interface, text='Click on a shape to practise:', bg='white')
+    interface_message.pack(side=tk.TOP)
     canvas = tk.Canvas(
         interface,
         bg='white',
