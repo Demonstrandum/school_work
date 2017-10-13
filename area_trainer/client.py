@@ -2,6 +2,7 @@
 
 import os, sys
 import random, time, threading
+import math  # For area calculations
 import tkinter as tk
 import json
 from time import gmtime, strftime
@@ -31,14 +32,83 @@ shape_data = {
     'circle': {
         'latex': r'\pi r^2',
         'formula': "3.14159265 * {var1}**2",
-        'variable': "r = {var1}",
+        'variable': "radius — r = {var1}",
         'formula-image': '{}/../formula/circle.png'.format(image_dir),
 
         'info': ' '.join("""
             Where \u03c0 is `pi` which is a constant of half the diameter
             of circle with radius 1, and `r` is the radius of the circle.
         """.split()).replace('\t', '').strip()
-    }
+    },
+    'regular-polygon': {
+        'latex': r'\frac{n s^2}{4 \tan(\frac{180}{n})}',
+        'formula': "({var1} * {var2}**2) / (4 * math.tan(math.radians(180/{var1})))",
+        'variable': "number of sides — n = {var1}\n length of one side — s = {var2}",
+        'formula-image': '{}/../formula/regular-polygon.png'.format(image_dir),
+
+        'info': ' '.join("""
+            To find the area of any regular n-sided polygon, with
+            certain side length, plug in the number of sides `n` and
+            the length of one side `s`, in to the equation.
+            It uses the formula of multiplying the apothem (shortest length from centre
+            to side of polygon) by the perimeter and dividing it all by 2.
+            The equation for the apothem is `s / 2tan(180/n)` multiplied by the
+            perimeter (`s * n`), and all over 2, results in this formula.
+        """.split()).replace('\t', '').strip()
+    },
+    'square': {
+        'latex': r'l^2',
+        'formula': "{var1}**2",
+        'variable': "side length — l = {var1}",
+        'formula-image': '{}/../formula/square.png'.format(image_dir),
+
+        'info': ' '.join("""
+            The area of a square is always a square number (hence the name).
+            It is found by multiplying the two sides: `l * l` or as it
+            may also be writen as `l\u00b2`.
+        """.split()).replace('\t', '').strip()
+    },
+    'right-angle-triangle': {
+        'latex': r'\frac{1}{2} a b',
+        'formula': "({var1} * {var2}) / 2",
+        'variable': "leg — a = {var1}\nleg — b = {var2}",
+        'formula-image': '{}/../formula/right-angle-triangle.png'.format(image_dir),
+
+        'info': ' '.join("""
+            Get the length of the two legs (not the hypotenuse)
+            and multiply them together, then divide it all by 2.
+            If you have the length of the hypotenuse and missing one of
+            the legs, then you can use the pythagorean theorem (`√(c\u00b2 - a\u00b2) = b`)
+            where `c` is the hyptenuse and `a` and `b` are the legs, then when you
+            have the missing leg, use the formula.
+        """.split()).replace('\t', '').strip()
+    },
+    'triangle': {
+        'latex': r'\frac{1}{2} a c \cdot \sin(B)',
+        'formula': "({var1} * {var2} / 2) * math.sin({var3})",
+        'variable': "side adjacent to the angle — a = {var1}\nside joining other side — c = {var2}\nangle between two sides — B = {var3}",
+        'formula-image': '{}/../formula/triangle.png'.format(image_dir),
+
+        'info': ' '.join("""
+            `a` and `c` are sides of the triangle and `B` is the angle they form
+            when joining. Substitute in these variables to find the area.
+        """.split()).replace('\t', '').strip()
+    },
+    'trapezium': {
+        'latex': r'frac{1}{2} h(a + b)',
+        'formula': "({var1}/2) * ({var2} + {var3})",
+        'variable': "height — h = {var1}\nlength of top — a = {var2}\nlength of base — b = {var3}",
+        'formula-image': '{}/../formula/trapezium.png'.format(image_dir),
+
+        'info': ' '.join("""
+            To calculate the area of a trapezium, get the length
+            of the base plus the top of the trapezium, them multiply all that by the
+            trapezium's height, and then half that result.
+            If you do not have the height and rather one of the slanted sides,
+            use the pythagorean theorem to find the height, by imagining a right
+            angle triangle.
+        """.split()).replace('\t', '').strip()
+    },
     # TODO: Add data for all shapes
 }
 
@@ -79,6 +149,7 @@ class Score(tk.IntVar):
 # Start Tkinter GUI
 root = tk.Tk()
 width, height = 400, 300
+root.resizable(False, False)
 root.title("Register or Login")
 root.configure(background='white')
 
@@ -145,7 +216,7 @@ show_frame = tk.Frame(root, bg='white')
 quiz_frame = tk.Frame(root, bg='white')
 
 correct = False
-attempts = 3
+attempts = 2
 attempts_count = attempts
 attempts_var = tk.StringVar()
 attempts_var.set("[{}] attempts left.\n".format(attempts_count))
@@ -163,8 +234,8 @@ def check_answer(right_index=None, selected=None):
         attempts_count = attempts
         attempts_var.set("[{}] attempts left.\n".format(attempts_count))
     else:
-        attempts_var.set("Wrong! Try again,\n[{}] attempts left.\n".format(attempts_count))
         attempts_count -= 1
+        attempts_var.set("Wrong! Try again,\n[{}] attempts left.\n".format(attempts_count))
 
     return correct
 
@@ -177,6 +248,10 @@ def back_inteface():
 def show_shape(name, file):
     """Show the selected shape"""
     # Log selected shape
+    global attempts_count, attempts_var
+    attempts_count = attempts
+    attempts_var.set("[{}] attempts left.\n".format(attempts_count))
+
     user_index = None
     for user_dict in database:
         if user_dict['username'] == username:
@@ -203,6 +278,7 @@ def show_shape(name, file):
     max_var = 40
     var1, var2, var3, var4 = [random.randint(1, max_var) for _ in range(4)]
     right_answer = eval(data['formula'].format(var1=var1, var2=var2, var3=var3, var4=var4))
+    print(right_answer)
     answers = [eval(data['formula'].format(
         var1=random.randint(1, max_var),
         var2=random.randint(1, max_var),
@@ -220,16 +296,16 @@ def show_shape(name, file):
 
     attempts_label = tk.Label(quiz_frame, textvariable=attempts_var, bg='white')
     attempts_label.grid(row=0, column=0)
-    values_label = tk.Label(quiz_frame, pady=10, text=data['variable'].format(var1=var1, var2=var2, var3=var3, var4=var4), bg='white')
+    values_label = tk.Label(quiz_frame, pady=20, text=data['variable'].format(var1=var1, var2=var2, var3=var3, var4=var4), bg='white')
     values_label.grid(row=1, column=0)
-    a_check = tk.Checkbutton(quiz_frame, pady=5, padx=5, text="{:.2f}".format(answers[0]).rjust(10), variable=a_int, bg='white')
-    a_check.grid(row=2, column=0, sticky=tk.W)
-    b_check = tk.Checkbutton(quiz_frame, pady=5, padx=5, text="{:.2f}".format(answers[1]).rjust(10), variable=b_int, bg='white')
-    b_check.grid(row=3, column=0, sticky=tk.W)
-    c_check = tk.Checkbutton(quiz_frame, pady=5, padx=5, text="{:.2f}".format(answers[2]).rjust(10), variable=c_int, bg='white')
-    c_check.grid(row=4, column=0, sticky=tk.W)
-    d_check = tk.Checkbutton(quiz_frame, pady=5, padx=5, text="{:.2f}".format(answers[3]).rjust(10), variable=d_int, bg='white')
-    d_check.grid(row=5, column=0, sticky=tk.W)
+    a_check = tk.Checkbutton(quiz_frame, pady=5, padx=5, text="{:.2f}".format(answers[0]).zfill(10), variable=a_int, bg='white')
+    a_check.grid(row=2, column=0)
+    b_check = tk.Checkbutton(quiz_frame, pady=5, padx=5, text="{:.2f}".format(answers[1]).zfill(10), variable=b_int, bg='white')
+    b_check.grid(row=3, column=0)
+    c_check = tk.Checkbutton(quiz_frame, pady=5, padx=5, text="{:.2f}".format(answers[2]).zfill(10), variable=c_int, bg='white')
+    c_check.grid(row=4, column=0)
+    d_check = tk.Checkbutton(quiz_frame, pady=5, padx=5, text="{:.2f}".format(answers[3]).zfill(10), variable=d_int, bg='white')
+    d_check.grid(row=5, column=0)
 
     tk.Label(quiz_frame, text='', pady=2.5, padx=2.5, bg='white').grid(row=6)
 
@@ -241,7 +317,7 @@ def show_shape(name, file):
     )
     check_button.grid(row=7, column=0)
 
-    def wrong_threading():
+    def wrong_event():
         quiz_frame.destroy()
         show_frame.pack()
         shape_frame = tk.Frame(show_frame, bg='white')
@@ -251,7 +327,7 @@ def show_shape(name, file):
         too_wrong.pack(side=tk.TOP)
 
         image = Image.open("{}/{}".format(image_dir, file))
-        image = image.resize((350, 350), Image.ANTIALIAS)
+        image = image.resize((250, 250), Image.ANTIALIAS)
         photo = ImageTk.PhotoImage(image)
         photo_label = tk.Label(
             shape_frame,
@@ -267,9 +343,8 @@ def show_shape(name, file):
         desc_frame.pack(side=tk.BOTTOM)
 
         formula_image = Image.open(data['formula-image'])
-        # image = image.resize((350, 350), Image.ANTIALIAS)
+        formula_image = formula_image.resize((80, 80), Image.ANTIALIAS)
         formula_photo = ImageTk.PhotoImage(formula_image)
-        # formula_photo = tk.PhotoImage(file=data['formula-image'])
         formula_label = tk.Label(
             desc_frame,
             image=formula_photo,
@@ -278,7 +353,7 @@ def show_shape(name, file):
         formula_label.image = formula_photo
         formula_label.pack(side=tk.TOP)
 
-        info_label = tk.Label(desc_frame, text=data['info'], bg='white', wraplength=400)
+        info_label = tk.Label(desc_frame, text=data['info'], bg='white', justify=tk.LEFT, wraplength=300)
         info_label.pack(side=tk.TOP, pady=(30, 20))
 
         back_frame = tk.Frame(desc_frame, bg='white')
@@ -291,7 +366,7 @@ def show_shape(name, file):
         )
         back_button.pack(side=tk.BOTTOM)
 
-    def correct_screen():
+    def correct_event():
         quiz_frame.destroy()
         congrats = tk.Label(
             root,
@@ -313,13 +388,13 @@ def show_shape(name, file):
                 correct = False  # Set back to assume wrong
                 attempts_count = attempts
                 score.correct()
-                correct_screen()
+                correct_event()
                 break
 
             if attempts_count < 1:
                 attempts_count = attempts
                 score.punish()
-                wrong_threading()
+                wrong_event()
                 break
 
     answer_thread = threading.Thread(target=answer_event)
