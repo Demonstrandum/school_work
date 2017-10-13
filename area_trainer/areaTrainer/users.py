@@ -13,7 +13,8 @@ EXAMPLE_DATABASE = [
             ['2017-09-25 12:50:20', '2017-09-25 12:50:20'],
             ['2017-09-29 14:00:21', '2017-09-29 15:25:50']
         ],
-        'shapes':   [['triangle', 6], ['square', 2]]
+        'shapes':   [['triangle', 6], ['square', 2]],
+        'score': 5
     },
     {
         'username': 'tom',
@@ -22,7 +23,8 @@ EXAMPLE_DATABASE = [
             ['2013-10-02 23:00:10', '2013-10-02 23:00:10'],
             ['2014-11-01 14:00:21', '2014-11-02 01:25:50']
         ],
-        'shapes':   [['triangle', 8], ['square', 1]]
+        'shapes':   [['triangle', 8], ['square', 1]],
+        'score': 2
     }
 ]
 
@@ -104,7 +106,8 @@ class Register(Users):
                     strftime("%Y-%m-%d %H:%M:%S", gmtime())
                 ]
             ],
-            'shapes': []
+            'shapes': [],
+            'score': 0
         }
         self.database.append(user_info)
         return self.database

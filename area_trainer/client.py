@@ -33,7 +33,7 @@ shape_data = {
         'latex': r'\pi r^2',
         'formula': "3.14159265 * {var1}**2",
         'variable': "radius — r = {var1}",
-        'formula-image': '{}/../formula/circle.png'.format(image_dir),
+        'formula-image': '{}/../formula/circle.gif'.format(image_dir),
 
         'info': ' '.join("""
             Where \u03c0 is `pi` which is a constant of half the diameter
@@ -44,7 +44,7 @@ shape_data = {
         'latex': r'\frac{n s^2}{4 \tan(\frac{180}{n})}',
         'formula': "({var1} * {var2}**2) / (4 * math.tan(math.radians(180/{var1})))",
         'variable': "number of sides — n = {var1}\n length of one side — s = {var2}",
-        'formula-image': '{}/../formula/regular-polygon.png'.format(image_dir),
+        'formula-image': '{}/../formula/regular-polygon.gif'.format(image_dir),
 
         'info': ' '.join("""
             To find the area of any regular n-sided polygon, with
@@ -60,7 +60,7 @@ shape_data = {
         'latex': r'l^2',
         'formula': "{var1}**2",
         'variable': "side length — l = {var1}",
-        'formula-image': '{}/../formula/square.png'.format(image_dir),
+        'formula-image': '{}/../formula/square.gif'.format(image_dir),
 
         'info': ' '.join("""
             The area of a square is always a square number (hence the name).
@@ -72,7 +72,7 @@ shape_data = {
         'latex': r'\frac{1}{2} a b',
         'formula': "({var1} * {var2}) / 2",
         'variable': "leg — a = {var1}\nleg — b = {var2}",
-        'formula-image': '{}/../formula/right-angle-triangle.png'.format(image_dir),
+        'formula-image': '{}/../formula/right-angle-triangle.gif'.format(image_dir),
 
         'info': ' '.join("""
             Get the length of the two legs (not the hypotenuse)
@@ -87,7 +87,7 @@ shape_data = {
         'latex': r'\frac{1}{2} a c \cdot \sin(B)',
         'formula': "({var1} * {var2} / 2) * math.sin({var3})",
         'variable': "side adjacent to the angle — a = {var1}\nside joining other side — c = {var2}\nangle between two sides — B = {var3}",
-        'formula-image': '{}/../formula/triangle.png'.format(image_dir),
+        'formula-image': '{}/../formula/triangle.gif'.format(image_dir),
 
         'info': ' '.join("""
             `a` and `c` are sides of the triangle and `B` is the angle they form
@@ -98,7 +98,7 @@ shape_data = {
         'latex': r'frac{1}{2} h(a + b)',
         'formula': "({var1}/2) * ({var2} + {var3})",
         'variable': "height — h = {var1}\nlength of top — a = {var2}\nlength of base — b = {var3}",
-        'formula-image': '{}/../formula/trapezium.png'.format(image_dir),
+        'formula-image': '{}/../formula/trapezium.gif'.format(image_dir),
 
         'info': ' '.join("""
             To calculate the area of a trapezium, get the length
@@ -109,9 +109,13 @@ shape_data = {
             angle triangle.
         """.split()).replace('\t', '').strip()
     },
-    # TODO: Add data for all shapes
 }
 
+def get_user_index():
+    for user_dict in database:
+        if user_dict['username'] == username:
+            return database.index(user_dict)
+    return None
 
 class Score(tk.IntVar):
     def __init__(self, start=None, reward=2, punishment=1):
@@ -220,16 +224,12 @@ attempts = 2
 attempts_count = attempts
 attempts_var = tk.StringVar()
 attempts_var.set("[{}] attempts left.\n".format(attempts_count))
-score = Score(start=0, reward=2, punishment=1)
+score = Score(start=0, reward=2, punishment=1)  # Set to last score in `access` function
 
-def check_answer(right_index=None, selected=None):
+def check_answer(right=None, var=None):
     global correct, attempts_count, attempts_var
 
-    answers = []
-    for checks in selected:
-        answers.append(checks.get())
-
-    correct = answers[right_index] == 1
+    correct = int(right) == var.get()
     if correct:
         attempts_count = attempts
         attempts_var.set("[{}] attempts left.\n".format(attempts_count))
@@ -252,11 +252,7 @@ def show_shape(name, file):
     attempts_count = attempts
     attempts_var.set("[{}] attempts left.\n".format(attempts_count))
 
-    user_index = None
-    for user_dict in database:
-        if user_dict['username'] == username:
-            user_index = database.index(user_dict)
-            break
+    user_index = get_user_index()
 
     if name not in sum(database[user_index]['shapes'], []):
         database[user_index]['shapes'].append([name, 1])
@@ -278,7 +274,6 @@ def show_shape(name, file):
     max_var = 40
     var1, var2, var3, var4 = [random.randint(1, max_var) for _ in range(4)]
     right_answer = eval(data['formula'].format(var1=var1, var2=var2, var3=var3, var4=var4))
-    print(right_answer)
     answers = [eval(data['formula'].format(
         var1=random.randint(1, max_var),
         var2=random.randint(1, max_var),
@@ -289,22 +284,20 @@ def show_shape(name, file):
     random.shuffle(answers)
     right_index = answers.index(right_answer)
 
-    a_int = tk.IntVar()
-    b_int = tk.IntVar()
-    c_int = tk.IntVar()
-    d_int = tk.IntVar()
+    radio_int = tk.IntVar()
+    radio_int.set(0)
 
     attempts_label = tk.Label(quiz_frame, textvariable=attempts_var, bg='white')
     attempts_label.grid(row=0, column=0)
     values_label = tk.Label(quiz_frame, pady=20, text=data['variable'].format(var1=var1, var2=var2, var3=var3, var4=var4), bg='white')
     values_label.grid(row=1, column=0)
-    a_check = tk.Checkbutton(quiz_frame, pady=5, padx=5, text="{:.2f}".format(answers[0]).zfill(10), variable=a_int, bg='white')
+    a_check = tk.Radiobutton(quiz_frame, pady=5, padx=5, text="{:.2f}".format(answers[0]).zfill(10), variable=radio_int, value=answers[0], bg='white')
     a_check.grid(row=2, column=0)
-    b_check = tk.Checkbutton(quiz_frame, pady=5, padx=5, text="{:.2f}".format(answers[1]).zfill(10), variable=b_int, bg='white')
+    b_check = tk.Radiobutton(quiz_frame, pady=5, padx=5, text="{:.2f}".format(answers[1]).zfill(10), variable=radio_int, value=answers[1], bg='white')
     b_check.grid(row=3, column=0)
-    c_check = tk.Checkbutton(quiz_frame, pady=5, padx=5, text="{:.2f}".format(answers[2]).zfill(10), variable=c_int, bg='white')
+    c_check = tk.Radiobutton(quiz_frame, pady=5, padx=5, text="{:.2f}".format(answers[2]).zfill(10), variable=radio_int, value=answers[2], bg='white')
     c_check.grid(row=4, column=0)
-    d_check = tk.Checkbutton(quiz_frame, pady=5, padx=5, text="{:.2f}".format(answers[3]).zfill(10), variable=d_int, bg='white')
+    d_check = tk.Radiobutton(quiz_frame, pady=5, padx=5, text="{:.2f}".format(answers[3]).zfill(10), variable=radio_int, value=answers[3], bg='white')
     d_check.grid(row=5, column=0)
 
     tk.Label(quiz_frame, text='', pady=2.5, padx=2.5, bg='white').grid(row=6)
@@ -313,7 +306,7 @@ def show_shape(name, file):
         quiz_frame,
         text='Submit',
         bg='white',
-        command=(lambda r=right_index, s=(a_int, b_int, c_int, d_int): check_answer(right_index=r, selected=s))
+        command=(lambda r=right_answer, v=radio_int: check_answer(right=r, var=v))
     )
     check_button.grid(row=7, column=0)
 
@@ -327,7 +320,7 @@ def show_shape(name, file):
         too_wrong.pack(side=tk.TOP)
 
         image = Image.open("{}/{}".format(image_dir, file))
-        image = image.resize((250, 250), Image.ANTIALIAS)
+        image = image.resize((175, 175), Image.ANTIALIAS)
         photo = ImageTk.PhotoImage(image)
         photo_label = tk.Label(
             shape_frame,
@@ -343,7 +336,6 @@ def show_shape(name, file):
         desc_frame.pack(side=tk.BOTTOM)
 
         formula_image = Image.open(data['formula-image'])
-        formula_image = formula_image.resize((80, 80), Image.ANTIALIAS)
         formula_photo = ImageTk.PhotoImage(formula_image)
         formula_label = tk.Label(
             desc_frame,
@@ -353,7 +345,7 @@ def show_shape(name, file):
         formula_label.image = formula_photo
         formula_label.pack(side=tk.TOP)
 
-        info_label = tk.Label(desc_frame, text=data['info'], bg='white', justify=tk.LEFT, wraplength=300)
+        info_label = tk.Label(desc_frame, text=data['info'], bg='white', justify=tk.LEFT, wraplength=200)
         info_label.pack(side=tk.TOP, pady=(30, 20))
 
         back_frame = tk.Frame(desc_frame, bg='white')
@@ -403,6 +395,8 @@ def show_shape(name, file):
 
 def access():
     """Run when logged in to present AT interface"""
+    global correct, score
+    score.set(database[get_user_index()]['score'])
     correct = False  # Reset correctness when on home screen
     score_frame = tk.Frame(root, bg='white')
     score_frame.pack(side=tk.TOP, pady=(20, 20))
@@ -554,7 +548,6 @@ def register():
     registerer = at.Register(reg_name_entry.get(), reg_pass_entry.get(), database)
 
     validity = registerer.validate()
-    print(reg_name_entry.get(), validity)
     if not validity['valid']:
         register_message.set(validity['error'])
         register_label.pack()
@@ -598,19 +591,17 @@ root.resizable(width=False, height=False)
 root.mainloop()
 
 # Take closing time and add start time
-user_index = None
-for user_dict in database:
-    if user_dict['username'] == username:
-        user_index = database.index(user_dict)
-        break
+user_index = get_user_index()
 database[user_index]['sessions'].append(
     [
         login_time,
         strftime("%Y-%m-%d %H:%M:%S", gmtime())
     ]
 )
-# Save info generated
+# Store the score
+database[get_user_index()]['score'] = score.get()
+# Save info generated:
 at.Users(database).save(file)
 # Verbose extra database output
-print('Users saved, user database: ')
-print(at.Users().load(file))
+# print('Users saved, user database: ')
+# print(at.Users().load(file))
