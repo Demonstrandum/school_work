@@ -154,7 +154,6 @@ class Score(tk.IntVar):
 root = tk.Tk()
 width, height = 400, 300
 root.resizable(False, False)
-root.title("Register or Login")
 root.configure(background='white')
 
 login_frame = tk.Frame(root, background='white')
@@ -396,6 +395,7 @@ def show_shape(name, file):
 def access():
     """Run when logged in to present AT interface"""
     global correct, score
+    root.title("Area Training")
     score.set(database[get_user_index()]['score'])
     correct = False  # Reset correctness when on home screen
     score_frame = tk.Frame(root, bg='white')
@@ -465,7 +465,7 @@ def access():
 def login():
     """Login to a user"""
     global username, password, login_time
-
+    root.title("Login to Area Trainer")
     login_object = at.Login(login_name_entry.get(), login_pass_entry.get(), database)
     if not login_object.exists():
         login_message.set('No such username!')
@@ -489,6 +489,7 @@ def login():
 
 def login_back():
     """Switch to register screen"""
+    root.title("Register or Login")
     global login_frame, index_frame
     index_frame.pack(side=tk.TOP, padx=20, pady=20)
     login_frame.pack_forget()
@@ -544,6 +545,7 @@ register_label = tk.Label(register_frame, textvariable=register_message, backgro
 
 def register():
     """Register user and log in"""
+    root.title("Sign up to Area Trainer")
     global username, password, login_time
     registerer = at.Register(reg_name_entry.get(), reg_pass_entry.get(), database)
 
@@ -575,6 +577,7 @@ regsiter_button.pack(side=tk.RIGHT)
 
 def register_back():
     """Switch to register screen"""
+    root.title("Register or Login")
     index_frame.pack(side=tk.TOP, padx=20, pady=20)
     register_frame.pack_forget()
 
@@ -587,6 +590,7 @@ reg_back_button = tk.Button(
 reg_back_button.pack(side=tk.LEFT)
 
 root.resizable(width=False, height=False)
+root.title("Register or Login")
 #root.geometry('{}x{}'.format(width, height))
 root.mainloop()
 
