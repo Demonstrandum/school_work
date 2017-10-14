@@ -15,7 +15,7 @@ import areaTrainer as at
 # Global username and password
 username = password = login_time = None
 # Location and name of file
-file = "{}/logins.json".format(os.path.dirname(__file__))
+file = "{}/logins.json".format(os.path.dirname(os.path.abspath(__file__)))
 # Make file if it does not exist
 if not os.path.exists(file):
     at.Users().save(file)
@@ -25,7 +25,7 @@ database = at.Users().load(file)
 
 
 # Images directory
-image_dir = "{}/assets/shapes/".format(os.path.dirname(__file__))
+image_dir = "{}/assets/shapes/".format(os.path.dirname(os.path.abspath(__file__)))
 images = os.listdir(image_dir)
 
 shape_data = {
