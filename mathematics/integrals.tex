@@ -1,0 +1,59 @@
+%  -*- coding: utf-8 -*-
+% !TeX program = pdflatex
+
+\documentclass[7pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\setlength{\parindent}{1cm}
+\usepackage[bottom=3cm,top=2cm,margin=2.25cm]{geometry}
+
+
+
+\begin{document}
+  \title{Basics of Integrals}
+  \date{\today}
+  \maketitle
+  \tableofcontents
+  \centerline{\line(1,0){450}}
+
+  \section[Explanation]{Explaining Notation}
+
+  An integral, simply represents the sum of the area of infinitesimally thin
+  rectangles. The \textit{thinness} or width of the rectangle is denoted as $dx$
+  which represents an infinitesimally small increment in the $x$ direction.
+  Thus the area of each rectangle is $dx \cdot y$ as $y$ of course, represents the
+  height of the rectangle.\\
+
+  The way we used to estimate the area under a graph, was making loads of small
+  rectangles under the curve and add together all the areas; this is imprecise.
+  In order to get better results we need to make the rectangles smaller, thus
+  needing more of them.\\
+  
+  \subsection{Expressing Yourself}
+  By using integrals we can imagine infinitesimally thin rectangles being added up
+  to give a much more precise answer for the area under the curve. The notation
+  for integrals is just a big `S' that looks like this: `$\int_{a}^{b}$'. You may
+  notice the `a' and `b', this can be read as `The integral of [equation of line] form $a$ to $b$',
+  with $a$ and $b$ being $x$ co\"{o}rdinates, limiting the area of the graph we're actually
+  calculating.\\\\
+  Now, say we have the equation for the curve:
+  \[ f(x) = 4x^2 - \frac{1}{2}x + 3 \]
+  and we want to find the area under that curve from $x = 4$ to $x = 12$
+  \[ \int_{4}^{12} f(x)\;dx \]
+  \centerline{or, with $f(x)$ expanded}
+  \[ \int_{4}^{12} 4x^2 - \frac{1}{2}x + 3\;dx \]\\
+  \subsection{Semantics}
+  Let's break this down: ignore the integral sign for now, and lets just focus
+  on one rectangle. We have our equation for the height (the $y$ co\"ordinate, $f(x)$),
+  now we need to multiply that by some infinitesimally small nudge in $x$ to form our
+  infinitesimally thin rectangle, giving us: $dx$.\\
+
+  $d$ is just notation for an infinitesimally small nudge in a certain direction.
+  This gives us the general equation for any rectangle under the curve: $y \cdot dx$.
+  Moving on to the integral sign, which simply just stands for ``sum'',
+  because we are summing area of \textbf{all} the rectangles between $a$ and $b$
+  ($4$ and $12$) thusly giving us the total area under the curve $f(x)$ 
+  where $4 \leq x \leq 12$.
+
+\end{document}
