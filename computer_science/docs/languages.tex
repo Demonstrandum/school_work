@@ -1,0 +1,65 @@
+%  -*- coding: utf-8 -*-
+% !TEX program = xelatex
+
+\documentclass{article}
+\usepackage{circuitikz}
+\usepackage{varwidth}
+\usepackage[margin=3.35cm]{geometry}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\usepackage{pgfplots,pgfplotstable}
+\pgfplotsset{/pgf/number format/use comma,compat=newest}
+
+\begin{document}
+
+\title{Different Types of Computer Languages}
+\author{Samuel F. D. Knutsen}
+\date{Compiled: \today}
+\maketitle
+
+\tableofcontents
+\clearpage
+
+\section[Languages types]{Levels of Languages}
+\subsection{Lowe Level}
+Low level programming languages are languages closer to what the how the computer works rather than how human languages work, very low level abstraction.\\
+
+Languages compile to OP-codes executed by the CPU, they often have low level concepts such as memory management, pointers, references to memory addresses, etc.
+
+\subsection{High Level}
+These are more abstract languages which are either compiled, or interpreted (using a virtual machine, for an even further level of abstraction).\\
+
+Here languages abstract away intricacies such as memory management and addresses and manage pointers and references for you. 
+
+\section{Known Languages}
+\subsection[ASM]{Assembly Dialects/Languages}
+These languages have a low level abstraction known as ``mneumonics'',
+these convert words such as \code{ADD 1 ACC}, \code{SUB 2 ACC}, etc. where \code{ACC} is a register in the CPU or RAM, the first words (`ADD' or \code{SUB}) are the instructions to the CPU and the numbers are converted to binary and modifies the registers associated appropriately. \\
+
+These languages compile to OP-codes specific for the CPU, imagine:
+\code{ADD 3 ACC} becomes \code{0x6E 0x3 0xF22A} (written in hexadecimal as opposed to binary for simplicity) which all just get executed by the CPU.\\
+
+\subsection{Interpeted languages}
+Interpreted languages \emph{act} like compilers, but instead of compiling to op-codes and executing on a CPU, it compiles to bytecodes \emph{in real time} which the get executed on a \emph{Virtual Machine} (see next section)
+
+\subsection{Virtual Machines}
+A virtual machine is the emulation of a computer inside a computer, it emulates similar components, tasks and intricacies similar a non-virtual machine. For example, a normal CPU operates by receiving and executing OP-codes, most interpreted programming languages have their own virtual machine which receives bytecodes, and these bytecodes are interpreted by the compiled program (the virtual machine) which then executes this by sending actual OP-codes to the CPU (sending bytecodes to the VM emulates sending OP-codes to the CPU).\\
+
+For example, the Python programming language compiles to Python bytecode which is interpreted by the Python virtual machine. This is the same case with Java, which is interpreted by the JVM (Java Virtual Machine) 
+
+
+\section[High-level types]{Types of High-Level Languages}
+\subsection{Imperative}
+In this paradigm, you tell the computer how to do something and then you can use your instructions to do the things you want, write exactly what you want your machine to do, and how to do it.
+
+These are for system languages that need to have small file sizes and quick execution, some examples are: C/C++, Rust, ASM, and more.
+\subsection[OO Languages]{Object-Oriented Languages}
+Here we have ``classes'' which are essentially blueprints for instantiating ``objects'', objects are a collection of methods and values which change individually from object to object.\\
+
+This is probably the most popular paradigm currently, some examples of include: Java, C++, C\#, Ruby, Python, Smalltalk, and many more.
+\subsection[Declarative]{Functional / Declarative Languages}
+These languages are languages where you tell it only \emph{what} to do, instead of \emph{how} to do it, the language does all the time-wasting instructions, while you just tell it what you want to accomplish.\\
+
+There are many popular languages in this paradigm: Prolog, Haskell, OCamel, Lisp dialects (Scheme, Clojure,  Common Lisp, Emacs Lisp, and \emph{many} more, lisps are written almost as list with each operator/function being a prefix (Polish Notation)), Erlang/Elixir, and many more.
+
+\end{document}
