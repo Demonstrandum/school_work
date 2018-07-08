@@ -554,6 +554,10 @@ def register():
         register_message.set(validity['error'])
         register_label.pack()
         return validity['valid']
+    elif reg_pass_entry.get() != reg_repass_entry.get():
+        register_message.set("Passwords do not match!")
+        register_label.pack()
+        return False
 
     register_message.set('Success')
     register_label.pack()
